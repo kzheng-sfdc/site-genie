@@ -37,7 +37,7 @@ async function loadManifest(subfolder: string): Promise<Manifest> {
 /**
  * Crops each component from the live page: visit URL, find element by selector, screenshot, save to analysis folder.
  */
-async function crop(subfolder: string): Promise<void> {
+export async function crop(subfolder: string): Promise<void> {
   const hostname = subfolderToHostname(subfolder);
   const url = `https://${hostname}`;
   const analysisDir = join(process.cwd(), 'output', subfolder, 'analysis');
@@ -113,7 +113,9 @@ async function main(): Promise<void> {
   await crop(subfolder);
 }
 
-main().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+if (require.main === module) {
+  main().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

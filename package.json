@@ -5,6 +5,7 @@
   "main": "dist/tools/scraper.js",
   "scripts": {
     "build": "tsc",
+    "start": "tsc && node dist/tools/start.js",
     "scrape": "tsc && node dist/tools/scraper.js",
     "deconstruct": "tsc && node dist/tools/deconstructor.js",
     "crop": "tsc && node dist/tools/cropper.js",
