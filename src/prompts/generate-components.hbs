@@ -1,0 +1,175 @@
+# Component and page generation task
+
+You are generating a list of components based on the following manifest, html source and screenshot files:
+
+Manifest: {{manifest}}
+HTML Source: {{htmlSource}}
+Overall Page Screenshot: {{screenshot}} 
+Component screenshot mappings:
+{{#each components as |component|}}
+{{component.name}} -> {{component.screenshot}}
+{{/each}}
+
+## Your Task
+
+Iterate through the components list in the manifest. For each component:
+1. Use the component's css selector to find the corresponding HTML source, use it as the basis of the component's JSX code.
+2. Strictly adhere to component's content, style and size.
+3. Implement interactivity as specified in the component's interactivity object.
+4. Generate a PRODUCTION-READY React component that VISUALLY matches the component's screenshot with PIXEL-PERFECT accuracy.
+5. If the generated code introduces a new dependency not found in the {{targetDir}}/package.json, add it to the {{targetDir}}/package.json file.
+6. Use the component's name without the number prefix and dash as the file name. For example, if the component's name is "01-header-banner", the file name should be "header-banner.tsx".
+
+## CRITICAL: Visual Fidelity Requirements
+
+**Your #1 objective is ACCURACY - the generated component must be visually indistinguishable from the screenshot.**
+
+### 🎯 Mandatory Fidelity Standards:
+
+**1. HTML Structure Preservation:**
+- ✅ Replicate the original HTML DOM structure as closely as possible in JSX
+- ✅ Preserve semantic HTML tags (header, nav, section, article, aside, footer, etc.)
+- ✅ Maintain the same nesting hierarchy and element relationships
+- ✅ Keep class names consistent with the original (convert to React className)
+
+**2. Visual Accuracy Checklist - EVERY component must match:**
+- [ ] **Layout:** Flexbox, Grid, positioning - exactly as shown in screenshot
+- [ ] **Spacing:** Margins, padding, gaps - measure from screenshot
+- [ ] **Typography:** Font family, size, weight, line-height, letter-spacing - exact match
+- [ ] **Colors:** Background, text, borders - use exact hex/rgb values from manifest.style
+- [ ] **Dimensions:** Width, height, aspect ratios - precise measurements from manifest.size
+- [ ] **Borders & Shadows:** Border radius, box-shadow, text-shadow - replicate exactly
+- [ ] **Images:** Sizes, aspect ratios, object-fit properties - match screenshot rendering
+- [ ] **Alignment:** Text alignment, flex alignment, grid placement - pixel-perfect
+
+**3. Content Accuracy:**
+- ✅ Use EXACT text content from manifest.content (character-for-character)
+- ✅ Use EXACT image URLs from manifest.content (no modifications)
+- ✅ Preserve text formatting: bold, italic, line breaks, special characters
+- ✅ **🎠 CRITICAL FOR CAROUSELS: Render ALL items from manifest.content, not just visible ones**
+  - The manifest includes all carousel slides extracted from the HTML
+  - Your component must render ALL items, even if only some are visible initially
+  - Example: If manifest.content has 20 products, render all 20 in the carousel
+  - Users should be able to navigate through all items using carousel controls
+- ❌ Do NOT invent, modify, or "improve" any content
+- ❌ Do NOT use placeholder text like "Lorem ipsum" - use actual content
+- ❌ Do NOT render only the visible carousel items from the screenshot
+
+**4. Interactivity & Behavior:**
+- ✅ Implement ALL interactive elements from manifest.interactivity
+- ✅ Hover states, click handlers, navigation links - fully functional
+- ✅ For carousels/sliders: Implement navigation (arrows, dots, swipe if applicable)
+- ✅ Dropdowns, modals, accordions - implement with proper state management
+- ✅ Form inputs, buttons - implement with appropriate handlers
+
+**5. Responsive Behavior (if evident in screenshot):**
+- ✅ Match breakpoints and responsive patterns from original HTML
+- ✅ Preserve mobile/tablet/desktop layout variations
+- ✅ Maintain aspect ratios and proportions across screen sizes
+
+### 🚨 Common Mistakes to Avoid:
+
+- ❌ Approximating colors instead of using exact values from manifest.style
+- ❌ Guessing spacing values instead of using measurements from manifest.style
+- ❌ Using generic fonts instead of specified font families from manifest.style
+- ❌ Simplifying the HTML structure (losing semantic meaning and hierarchy)
+- ❌ Omitting small visual details (subtle shadows, borders, hover effects, gradients)
+- ❌ Hardcoding dimensions that should be responsive or flexible
+- ❌ Missing carousel items that aren't visible in the initial view
+- ❌ Creating overly simple "placeholder" versions instead of complete implementations
+- ❌ Skipping interactive states (hover, active, focus) visible in the original
+- ❌ Using different spacing/sizing systems than the original (if original uses rem, use rem)
+- ❌ Ignoring image aspect ratios and object-fit properties
+- ❌ Not implementing accessibility features present in the original HTML (alt text, ARIA labels)
+
+### 📐 Measurement & Implementation Process:
+
+For each component, systematically:
+1. **Study the screenshot** - Note every visual detail before coding
+2. **Analyze the HTML structure** - Understand the original DOM hierarchy
+3. **Extract style values** - Use manifest.style for exact measurements
+4. **Map content** - Reference manifest.content for all text/images/links
+5. **Plan interactivity** - Review manifest.interactivity for all interactive elements
+6. **Build incrementally** - Start with structure, add styles, then interactivity
+7. **Compare continuously** - Mentally compare your code output to the screenshot at each step
+8. **Verify completeness** - Check that ALL content from manifest is rendered (especially carousel items)
+
+Target directory to save the generated components: {{targetDir}}
+
+Technical Requirements:
+{{technicalRequirements}}
+
+Code Structure Template:
+```tsx
+/*
+ * Copyright (c) 2025, Salesforce, Inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import React from 'react';
+// ... other imports (useState, useEffect for interactivity, etc.)
+
+interface {{componentName}}Props {
+  // Define props based on manifest.content and manifest.interactivity
+  // Make props optional with defaults from manifest.content
+}
+
+export const {{componentName}}: React.FC<{{componentName}}Props> = (props) => {
+  // State management for interactive elements (carousels, dropdowns, etc.)
+
+  // Event handlers for interactivity
+
+  // Implementation
+  return (
+    // JSX that EXACTLY REPLICATES the screenshot and HTML structure
+    // - Use semantic HTML tags from original
+    // - Apply all styles from manifest.style
+    // - Render all content from manifest.content
+    // - Include ALL carousel items, not just visible ones
+  );
+};
+```
+
+## Final Pre-Generation Checklist:
+
+Before generating each component, verify:
+- [ ] Have you studied the component screenshot thoroughly?
+- [ ] Have you identified the original HTML structure to replicate?
+- [ ] Have you noted all style properties from manifest.style?
+- [ ] Have you extracted all content from manifest.content (including all carousel items)?
+- [ ] Have you planned implementation for all manifest.interactivity features?
+- [ ] Are you using exact colors, fonts, and spacing values (not approximations)?
+- [ ] Will your JSX structure mirror the original HTML semantic structure?
+
+## Post-Generation Mental Verification:
+
+After generating each component, mentally verify:
+- [ ] **Visual Comparison:** If this component were rendered, would it be visually identical to the screenshot?
+- [ ] **Structure Comparison:** Does the JSX hierarchy match the original HTML structure?
+- [ ] **Content Completeness:** Have you rendered ALL content from manifest.content?
+  - [ ] For carousels: Are ALL items rendered (not just the visible ones)?
+  - [ ] For text: Is every heading, paragraph, and label included?
+  - [ ] For images: Are all image URLs present and correct?
+- [ ] **Style Completeness:** Have you applied ALL styles from manifest.style?
+  - [ ] Colors (background, text, borders)
+  - [ ] Typography (font-family, size, weight, line-height)
+  - [ ] Spacing (margin, padding, gap)
+  - [ ] Layout (display, position, flexbox/grid properties)
+  - [ ] Dimensions (width, height from manifest.size)
+  - [ ] Visual effects (shadows, borders, border-radius, opacity)
+- [ ] **Interactivity Completeness:** Have you implemented ALL interactive features from manifest.interactivity?
+  - [ ] Links with correct hrefs
+  - [ ] Buttons with appropriate handlers
+  - [ ] Carousels with navigation controls
+  - [ ] Hover effects and state changes
+- [ ] **Accessibility:** Have you preserved accessibility features from the original?
+  - [ ] Alt text on images
+  - [ ] Semantic HTML tags
+  - [ ] ARIA labels and roles
+  - [ ] Keyboard navigation support
+
+**Only after verifying all post-generation items, move to the next component.**
+
+**Remember: The goal is not "close enough" - it's pixel-perfect accuracy. If you wouldn't be able to tell the difference between the original and your component in a side-by-side comparison, you've succeeded.**

@@ -1,0 +1,27 @@
+{
+  "name": "site-genie",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/tools/scraper.js",
+  "scripts": {
+    "build": "tsc",
+    "scrape": "tsc && node dist/tools/scraper.js",
+    "deconstruct": "tsc && node dist/tools/deconstructor.js",
+    "crop": "tsc && node dist/tools/cropper.js",
+    "generate": "tsc && node dist/tools/generator.js",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "packageManager": "pnpm@10.10.0",
+  "dependencies": {
+    "handlebars": "^4.7.8",
+    "playwright": "^1.58.2"
+  },
+  "devDependencies": {
+    "@types/handlebars": "^4.1.0",
+    "@types/node": "^25.3.0",
+    "typescript": "^5.9.3"
+  }
+}

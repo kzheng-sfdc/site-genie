@@ -1,0 +1,9 @@
+- The destination project uses React 19.2.3, React Router 7.12.0, Tailwind CSS 4.1.13, Vite 7.1.7 and Commerce Cloud SCAPI integration.
+- Do NOT introduce any new dependencies that are not already in the {{targetDir}}/package.json file.
+- Use TypeScript with proper types
+- Use Tailwind CSS for ALL styling (no custom CSS unless absolutely necessary)
+- Include proper accessibility attributes (aria-labels, alt text, semantic HTML)
+- Make responsive (mobile-first approach)
+- Use modern React patterns (hooks, functional components)
+- Add helpful comments for complex logic
+- Include copyright header (see below)

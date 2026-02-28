@@ -1,0 +1,224 @@
+# Web page Deconstruction Task
+
+You are analyzing a web page to understand its layout and structure, then break it down into sections and produce a json manifest of the sections.
+
+HTML Source: {{htmlSource}}
+Screenshot: {{screenshot}}
+
+## CRITICAL SUCCESS CRITERIA
+
+**Your #1 objective is COMPLETENESS - capturing EVERY section visible in the screenshot.**
+
+**🚨 MANDATORY RULE: NO FORBIDDEN CSS SELECTORS 🚨**
+You MUST NOT use these selectors in ANY cssSelector field:
+- `:contains()` - This pseudo-selector is FORBIDDEN
+- `:nth-of-type()` - Positional selectors are FORBIDDEN
+- `:nth-child()` - Positional selectors are FORBIDDEN
+
+Use only: IDs, unique classes, data attributes, or parent-child class combinations from the actual HTML.
+
+Common failure modes to avoid:
+- ❌ Stopping extraction before reaching the footer
+- ❌ Skipping small sections (text blocks, icon rows, dividers) between major components
+- ❌ Missing trust/benefits sections ("Reasons to Shop", delivery icons, guarantees)
+- ❌ Overlooking narrow promotional strips or category navigation bars
+- ❌ Starting JSON output before identifying all sections first
+
+**Success = Your component count matches actual visible sections in the screenshot**
+
+## Your Task
+
+Based on the provided HTML and screenshot:
+
+1. **MANDATORY PRE-ANALYSIS: Count All Sections First**
+   - **DO NOT SKIP THIS STEP - Count BEFORE extracting ANY details**
+   - Scroll through the ENTIRE screenshot from pixel 0 to the very bottom
+   - Create a numbered list of EVERY distinct visual section you see (don't write JSON yet, just list them)
+   - A section is ANY distinct visual block with its own purpose/content
+   - Include EVERYTHING: headers, banners, carousels, grids, text blocks, icon rows, promotional strips, editorial sections, footers
+   - **PAY SPECIAL ATTENTION TO SMALL SECTIONS** that are easy to miss:
+     * Narrow text strips with headings (e.g., "Experiment, Explore, Enjoy")
+     * Icon rows showing benefits (delivery, returns, guarantees)
+     * Category navigation bars
+     * Promotional text blocks
+     * Section dividers with logos or text
+     * Small banner announcements
+   - **Write down:** "I count [NUMBER] total sections from top to bottom"
+   - **Track approximate heights:** Estimate each section's height in pixels
+   - **Verify sum:** Do your section heights add up to approximately the full page height?
+
+2. **Visual Structure Analysis & Section Breakdown**
+   - **CRITICAL: Work systematically from TOP to BOTTOM of the screenshot**
+   - Use your numbered list from step 1 as your guide
+   - Identify the main layout structure (header, navigation, hero, content sections, footer)
+   - Understand the visual hierarchy and organization
+   - Note any distinctive design patterns or UI components
+   - Identify any reusable components or patterns (carousels, grids, product tiles, etc.)
+   - **🎠 CAROUSEL IDENTIFICATION:** When you spot a carousel, remember that the HTML contains ALL slides, not just what's visible in the screenshot
+     * Look for navigation dots, arrows, or swiping indicators as carousel markers
+     * Plan to extract ALL carousel content from the HTML in step 6
+
+3. **Common E-commerce Section Patterns to Look For**
+   - HEADER (navigation, logo, search, cart)
+   - HERO/BANNER (large promotional images/carousels)
+   - PRODUCT CAROUSELS (trending, new arrivals, best sellers, featured)
+     * **🚨 CAROUSEL CONTENT RULE:** For carousels, extract ALL slides from the HTML, not just visible ones in the screenshot
+     * Look for sibling HTML elements with similar structure/classes that represent additional carousel items
+   - CATEGORY/BRAND GRIDS (clickable tiles showcasing categories or brands)
+   - PROMOTIONAL SLOTS/TILES (2-4 column grids with calls-to-action)
+   - **TRUST/BENEFITS SECTIONS (icons showing delivery, returns, guarantees - "Reasons to Shop")**
+   - EDITORIAL CONTENT (blog posts, articles, "Inside Space" type sections)
+   - REVIEW/TESTIMONIAL CAROUSELS (customer reviews)
+   - LOYALTY/MEMBERSHIP BANNERS (rewards programs)
+   - SERVICE SECTIONS (store locator, apps, gift cards)
+   - SOCIAL PROOF/INSTAGRAM FEEDS
+   - NEWSLETTER SIGNUP
+   - FOOTER (links, copyright, social media)
+
+4. **Gap Detection Between Sections**
+   - After identifying section N, ask yourself: "What comes immediately after this section in the screenshot?"
+   - Look for visual boundaries: whitespace, background color changes, horizontal rules
+   - **RED FLAG:** If there's visible space between your Section 05 and Section 06 in the screenshot, you missed something!
+   - Check vertical continuity: Section 01's bottom should touch Section 02's top, etc.
+
+5. **Section Accounting - Write Your List**
+   - **MANDATORY: Before generating JSON, write out your complete section list in your response**
+   - Format: "I have identified the following [NUMBER] sections:"
+     1. Header with navigation
+     2. Delivery benefits carousel
+     3. Hero banner carousel
+     4. ... (continue for ALL sections)
+     [NUMBER]. Footer
+   - This list serves as your blueprint and lets you verify completeness
+   - **Only after writing this list should you proceed to step 6**
+
+6. **Section Breakdown & output the manifest**
+   - **TWO-PASS APPROACH REQUIRED:**
+     * **PASS 1 (COMPLETED):** You wrote your numbered list of all sections in step 5
+     * **PASS 2 (NOW):** Extract detailed information for each section from your list
+   - Use your numbered list from step 5 to ensure you extract details for EVERY section
+   - Number each section sequentially (01, 02, 03...) from top to bottom
+   - **Cross-reference as you go:** After completing each section, check it off your list from step 5
+   - **🚨 REMINDER: As you write each cssSelector, verify it does NOT contain `:contains(`, `:nth-of-type(`, or `:nth-child(`**
+   - Output the manifest in json format in your response
+   - The manifest should contain the following:
+```json
+{
+   "htmlSource": "{{htmlSource}}",
+   "screenshot": "{{screenshot}}",
+   "components": [
+      {
+         "name": string,
+         "description": string,
+         "cssSelector": string,
+         "interactivity": object, 
+         "content": object,
+         "style": object,
+         "size": { width: number, height: number }
+      }, ...
+   ]
+}
+```
+   - Each component object should have the following properties:
+     - name: the name of the section, this should be a number followed by a dash and the name of the section, e.g., 01-header, 02-hero-carousel.
+     - description: a description of the section
+     - cssSelector: the unique css selector for the section, this will be used to find the section in the HTML source.
+        - When selected, the section should span the entire width of the page.
+        - **🚨 CRITICAL CSS SELECTOR RULES - MANDATORY COMPLIANCE 🚨**
+
+          **FORBIDDEN SELECTORS - THESE WILL FAIL:**
+          - ❌ `:contains()` - NEVER use this pseudo-selector
+            * WRONG: `.component-product-carousel:has(h2:contains('trending'))`
+            * WRONG: `.textComponent:has(strong:contains('NEW BRANDS'))`
+            * WRONG: `.row-region-mobile-carousel:has(h2:contains('Experiment, Explore, Enjoy'))`
+          - ❌ `:nth-of-type()` - NEVER use positional selectors
+            * WRONG: `.row-region-trading:nth-of-type(1)`
+            * WRONG: `.row-region-trading:nth-of-type(2)`
+          - ❌ `:nth-child()` - NEVER use positional selectors
+            * WRONG: `.some-class:nth-child(3)`
+
+          **REQUIRED APPROACH - USE THESE INSTEAD:**
+          - ✅ Use unique ID attributes from the HTML
+            * RIGHT: `#carousel-49143a8ed14e626d8ba534375f`
+            * RIGHT: `#trending-products-section`
+          - ✅ Use unique class names from the HTML
+            * RIGHT: `.trending-products-carousel`
+            * RIGHT: `.new-brands-section`
+          - ✅ Use unique data attributes from the HTML
+            * RIGHT: `[data-section="trending"]`
+            * RIGHT: `[data-component-id="new-brands"]`
+          - ✅ Use parent class + child element combinations that appear only once
+            * RIGHT: `.homepage-main .product-carousel-trending`
+            * RIGHT: `.new-brands-wrapper .textComponent`
+
+          **MANDATORY VERIFICATION BEFORE WRITING EACH SELECTOR:**
+          1. Does my selector contain `:contains(`? → If YES, STOP and rewrite it
+          2. Does my selector contain `:nth-of-type(` or `:nth-child(`? → If YES, STOP and rewrite it
+          3. Can I find the exact classes/IDs I'm using in the HTML source? → If NO, go back to the HTML
+          4. Would this selector match only ONE element in the HTML? → If NO, add more specificity using valid selectors
+     - interactivity: any buttons, links, or other interactive elements in the section.
+     - content: this includes any text, image or logo urls, or other static contents found in the section's HTML source.
+        - **CRITICAL: EXACT EXTRACTION REQUIRED - NO MODIFICATIONS ALLOWED**
+        - You MUST extract content EXACTLY as it appears in the HTML source, character-for-character
+        - Any URL should be converted from relative to full URL by prepending the domain (https://{{domain}})
+        - You can ONLY extract contents found in the HTML document's text content within the section's css selector
+        - **🎠 SPECIAL RULE FOR CAROUSELS - EXTRACT ALL SLIDES:**
+          - ✅ For carousel sections, extract content from ALL carousel items/slides in the HTML, not just what's visible in the screenshot
+          - ✅ Look for sibling HTML elements with repeated structure (e.g., multiple `<div class="carousel-item">` or `<li class="slide">`)
+          - ✅ Identify the pattern: if you see one carousel item, look for adjacent elements with the same class/structure
+          - ✅ Extract content from each slide: images, text, links, buttons, etc.
+          - ✅ Example: A product carousel might show 4 products in the screenshot but have 20 product elements in the HTML - extract all 20
+          - ⚠️ Common carousel indicators in HTML: `.carousel-item`, `.slide`, `.swiper-slide`, `[data-slide]`, repeated child elements in a container
+        - **DO NOT make up, infer, or modify ANY content including:**
+          - ❌ Do NOT change URL paths, hashes, or filenames (e.g., changing `logo.svg` to `space-nk-logo.svg`)
+          - ❌ Do NOT change cache-busting hashes in URLs (e.g., changing `dw14a64704` to `dwfe3c7c6d`)
+          - ❌ Do NOT infer content from the screenshot that isn't in the HTML
+          - ❌ Do NOT create "more semantic" or "descriptive" URLs
+        - **Verification:** After extracting a URL, mentally verify that the path, filename, and all parameters match the HTML source exactly (excluding only the domain prepending)
+     - style: this includes any style information about the section, such as the background color, font, position, alignment, padding, margin, size etc.
+     - size: the width and height of the section in pixels.
+
+## FINAL VERIFICATION - Completeness Checklist
+Before submitting your manifest, verify EVERY item:
+
+**🚨 CSS SELECTOR VALIDATION (CHECK FIRST):**
+- [ ] Review EVERY cssSelector in your manifest
+- [ ] Search for `:contains(` in your JSON - if found, YOU MUST fix it before submitting
+- [ ] Search for `:nth-of-type(` in your JSON - if found, YOU MUST fix it before submitting
+- [ ] Search for `:nth-child(` in your JSON - if found, YOU MUST fix it before submitting
+- [ ] All selectors use only: IDs, classes, data attributes, or structural relationships
+- [ ] **If ANY forbidden selector is found, go back and rewrite it using the REQUIRED APPROACH**
+
+**Structural Completeness:**
+- [ ] Does your manifest have the EXACT same number of components as the count from step 1?
+- [ ] Have you captured the HEADER at the very top?
+- [ ] Have you captured the FOOTER at the very bottom?
+- [ ] Are your section numbers sequential without gaps (01, 02, 03... not 01, 02, 05)?
+- [ ] Total height: Add up all your section heights - does it approximately equal the full page height?
+
+**Content Type Coverage:**
+- [ ] ALL hero/banner carousels (large promotional images)
+- [ ] ALL product carousels (trending, new in, best sellers, featured, etc.)
+- [ ] **🎠 CAROUSEL CONTENT COMPLETENESS:** For each carousel section, did you extract ALL slides from the HTML (not just visible ones)?
+  - [ ] Check the HTML for sibling elements with repeated structure
+  - [ ] Verify your content includes items beyond what's shown in the screenshot
+- [ ] ALL grid sections (2-col, 3-col, 4-col tiles/slots)
+- [ ] ALL brand showcase sections (new brands, featured brands)
+- [ ] ALL editorial/blog content sections
+- [ ] ALL review/testimonial sections
+- [ ] **CRITICAL: Trust/benefits section (delivery info, returns, guarantees - often with icons)**
+- [ ] Loyalty/rewards program banners
+- [ ] Newsletter signup sections
+- [ ] Service/utility sections (app download, store locator, gift cards)
+
+**Visual Continuity Check:**
+- [ ] Pick 3 random adjacent sections (e.g., 05 & 06, 10 & 11, 14 & 15)
+- [ ] For each pair, look at the screenshot: Is there ANY visible content between them?
+- [ ] If YES, you missed a section - go back and find it!
+
+**The Bottom-to-Top Test:**
+- [ ] Start at the FOOTER and work BACKWARDS up the screenshot
+- [ ] Can you identify every section working backwards?
+- [ ] This reverse check often reveals missed sections that forward scanning missed
+
+**If ANY checklist item fails, you MUST go back to step 1 and recount all sections before resubmitting.**

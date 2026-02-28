@@ -1,0 +1,148 @@
+# Page generation task
+
+You are generating a React Production-Ready page based on the specifications found in the given manifest, html source and screenshot files:
+
+Manifest: {{manifest}}
+HTML Source: {{htmlSource}}
+Overall Page Screenshot: {{screenshot}}
+Page name: {{pageName}}
+
+## Your Task
+
+### Step 1: Verify and Understand Components
+
+BEFORE starting page generation, you MUST verify each component:
+
+1. **For each component in the manifest:**
+   - Each component has a "sourceFile" field that contains the absolute path to the component file
+   - Use the Read tool to verify the component file exists at the path specified in the "sourceFile" field
+   - Read the component file to identify:
+     - The exact export name (e.g., `export const Header` or `export default function Header`)
+     - Whether it's a named export or default export
+     - The component's props interface/type
+   - **If ANY component file doesn't exist:**
+     - STOP page generation immediately
+     - Report a clear error listing ALL missing component files
+     - DO NOT proceed with generating imports for non-existent components
+     - DO NOT guess or make up component exports
+
+2. **Component naming rules:**
+   - File names are in kebab-case (e.g., `header.tsx`, `delivery-benefits-carousel.tsx`)
+   - Component exports are typically PascalCase (e.g., `Header`, `DeliveryBenefitsCarousel`)
+   - ALWAYS read the actual file to confirm the export name rather than guessing
+   - The manifest may use names like `01-header` - strip number prefixes when locating files
+
+3. **Check for index.tsx:**
+   - Look for an `index.tsx` file in the component directory that may re-export all components
+   - If it exists, you can import multiple components from it: `import { Header, Footer } from '@/components/spacenk'`
+   - Otherwise, import from individual files: `import { Header } from '@/components/spacenk/header'`
+
+**Example verification workflow:**
+```
+Given manifest component: { "name": "01-header", "sourceFile": "/path/to/components/spacenk/Header.tsx", ... }
+
+Step 1: Read the sourceFile path: /path/to/components/spacenk/Header.tsx
+Step 2: Find export: "export const Header: React.FC<HeaderProps> = ..."
+Step 3: Note the export is named (not default), name is "Header", props type is "HeaderProps"
+Step 4: Use in page: import { Header } from '@/components/spacenk/Header';
+Step 5: Use in JSX: <Header cartItemCount={loaderData?.cartItemCount} />
+```
+
+### Step 2: Generate the Page
+
+Once you've verified all components exist and understand their exports:
+
+1. **Review the HTML source and screenshot** to understand the page structure and content
+2. **Use the HTML source as the basis** for the page's JSX structure
+3. **For each component in the manifest (in order):**
+   - Import the component using the correct export name you verified in Step 1
+   - Locate the corresponding HTML section using the component's CSS selector from the manifest
+   - Replace that HTML section with the component's JSX (e.g., `<Header cartItemCount={5} />`)
+   - **🚨 Construct props ONLY from the component's "content" field in the manifest:**
+     - Find the component in the manifest array by matching the component name
+     - Extract the `content` object for that component
+     - Use ONLY the data provided in that `content` object - copy it exactly
+     - Do NOT add, modify, or invent any URLs, text, or data not present in the manifest
+   - Ensure prop types match the component's interface (strings, numbers, objects, arrays, etc.)
+
+4. **🚨 CRITICAL: ALL CONTENT MUST COME FROM THE MANIFEST 🚨**
+   - **NEVER make up, invent, or fabricate URLs, image paths, text content, or any data**
+   - **EVERY URL, image path, heading, copy, link, etc. MUST be extracted from the manifest's "content" field**
+   - **If the manifest provides 4 articles, use exactly those 4 articles - do not create additional ones**
+   - **If a URL is missing from the manifest, leave it as an empty string or omit it - do NOT invent a placeholder**
+   - **Example of INCORRECT behavior:** Creating `inside_space_2.jpg` when it doesn't exist in manifest
+   - **Example of CORRECT behavior:** Using exact URLs like `dwa1f05b92/pd_homepages/26_WK4/korean_is.jpg` from manifest
+
+5. **Generate PRODUCTION-READY React page** that VISUALLY matches the overall page screenshot
+6. **Use ALL components** listed in the manifest in the order they appear
+7. **Check dependencies:** If you introduce a new dependency not in {{sfNextDir}}/package.json, add it to the file
+
+Target file to save the generated page: {{sfNextDir}}/src/routes/{{targetFile}}. 
+
+Technical Requirements:
+{{technicalRequirements}}
+
+Code Structure Template:
+```tsx
+/*
+ * Copyright (c) 2025, Salesforce, Inc.
+ * All rights reserved.
+ * SPDX-License-Identifier: BSD-3-Clause
+ * For full license text, see the LICENSE file in the repo root or https://opensource.org/licenses/BSD-3-Clause
+ */
+
+import React from 'react';
+// Import components using correct export names verified in Step 1
+// Example: import { Header, Footer } from '@/components/spacenk';
+// Or: import { Header } from '@/components/spacenk/header';
+
+// Define loader data interface
+export interface {{pageName}}Data {
+    // Define fields based on what data the components need
+    cartItemCount?: number;
+    isAuthenticated?: boolean;
+    // ... other fields
+}
+
+/**
+ * {{pageName}} - [Brief description of the page]
+ *
+ * This production-ready page assembles all components in the correct order
+ * with proper props based on the manifest data and component interfaces.
+ */
+export default function {{pageName}}({ loaderData }: { loaderData?: {{pageName}}Data }) {
+    return (
+        <div className="min-h-screen bg-white">
+            {/* Use actual component JSX here - NOT HTML comments like <header-banner> */}
+            {/* Example: <Header cartItemCount={loaderData?.cartItemCount} /> */}
+        </div>
+    );
+}
+```
+
+## Important Reminders
+
+- ✅ Use PascalCase for component names (e.g., `<Header />`, not `<header />`)
+- ✅ Use actual component props, not placeholder HTML-style tags
+- ✅ Read component files FIRST to understand their exports and props
+- ✅ Include proper TypeScript types for loaderData
+- ✅ Add JSDoc comments explaining the page purpose
+- ✅ Make loaderData optional with `?` since some components render without data
+
+## 🚨 CRITICAL CONTENT REQUIREMENT 🚨
+
+**YOU MUST USE ONLY MANIFEST DATA - NO FABRICATED CONTENT:**
+
+- ❌ **NEVER** make up URLs like `inside_space_2.jpg` or `example-image.jpg`
+- ❌ **NEVER** invent placeholder text like "Discover the essentials" if not in manifest
+- ❌ **NEVER** create additional items beyond what the manifest provides
+- ❌ **NEVER** modify or "improve" content from the manifest
+
+- ✅ **ALWAYS** use exact URLs from manifest `content` field (e.g., `dwa1f05b92/pd_homepages/26_WK4/korean_is.jpg`)
+- ✅ **ALWAYS** use exact text from manifest (headings, copy, subheadings, CTA text)
+- ✅ **ALWAYS** use exact number of items the manifest provides (if 4 articles, use exactly 4)
+- ✅ **ALWAYS** preserve empty strings if manifest has empty values for fields
+
+**If you find yourself typing a URL or content that you don't see directly in the manifest JSON, STOP - you are making it up.**
+
+Generate the complete, production-ready page code now.
