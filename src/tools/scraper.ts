@@ -16,10 +16,11 @@ interface ScrapeResult {
  */
 function getRealisticUserAgent(): string {
   const userAgents = [
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36',
-    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.2 Safari/605.1.15',
-    'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:133.0) Gecko/20100101 Firefox/133.0',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/132.0.0.0 Safari/537.36',
+    'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Safari/537.36',
   ];
   return userAgents[Math.floor(Math.random() * userAgents.length)];
 }
@@ -241,6 +242,25 @@ export async function createStealthBrowser() {
       '--disable-setuid-sandbox',
       '--disable-web-security',
       '--disable-features=IsolateOrigins,site-per-process',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--no-first-run',
+      '--no-zygote',
+      '--disable-gpu',
+      '--enable-features=NetworkService,NetworkServiceInProcess',
+      '--disable-background-timer-throttling',
+      '--disable-backgrounding-occluded-windows',
+      '--disable-breakpad',
+      '--disable-component-extensions-with-background-pages',
+      '--disable-extensions',
+      '--disable-features=TranslateUI,BlinkGenPropertyTrees',
+      '--disable-ipc-flooding-protection',
+      '--disable-renderer-backgrounding',
+      '--force-color-profile=srgb',
+      '--metrics-recording-only',
+      '--mute-audio',
+      '--no-default-browser-check',
+      '--disable-blink-features=AutomationControlled',
     ],
   });
 }
@@ -280,6 +300,9 @@ export async function createStealthContext(browser: any) {
       get: () => undefined,
     });
 
+    // Remove automation-related properties
+    delete (navigator as any).__proto__.webdriver;
+
     // Mock plugins to look like a real browser
     Object.defineProperty(navigator, 'plugins', {
       get: () => [
@@ -290,6 +313,13 @@ export async function createStealthContext(browser: any) {
           length: 1,
           name: 'Chrome PDF Plugin',
         },
+        {
+          0: { type: 'application/pdf', suffixes: 'pdf', description: 'Portable Document Format' },
+          description: 'Chromium PDF Viewer',
+          filename: 'mhjfbmdgcfjbbpaeojofohoefgiehjai',
+          length: 1,
+          name: 'Chromium PDF Viewer',
+        },
       ],
     });
 
@@ -298,9 +328,15 @@ export async function createStealthContext(browser: any) {
       get: () => ['en-US', 'en'],
     });
 
-    // Add chrome object
+    // Add chrome object with more properties
     (window as any).chrome = {
-      runtime: {},
+      app: {},
+      runtime: {
+        connect: () => {},
+        sendMessage: () => {},
+      },
+      loadTimes: () => {},
+      csi: () => {},
     };
 
     // Mock permissions
@@ -309,6 +345,37 @@ export async function createStealthContext(browser: any) {
       parameters.name === 'notifications'
         ? Promise.resolve({ state: 'prompt' })
         : originalQuery(parameters);
+
+    // Mock hardware concurrency
+    Object.defineProperty(navigator, 'hardwareConcurrency', {
+      get: () => 8,
+    });
+
+    // Mock device memory
+    Object.defineProperty(navigator, 'deviceMemory', {
+      get: () => 8,
+    });
+
+    // Override automation-related properties
+    Object.defineProperty(navigator, 'platform', {
+      get: () => 'MacIntel',
+    });
+
+    // Mock window.outerWidth and outerHeight to look realistic
+    Object.defineProperty(window, 'outerWidth', {
+      get: () => 1920,
+    });
+    Object.defineProperty(window, 'outerHeight', {
+      get: () => 1080,
+    });
+
+    // Mock screen properties
+    Object.defineProperty(window.screen, 'availWidth', {
+      get: () => 1920,
+    });
+    Object.defineProperty(window.screen, 'availHeight', {
+      get: () => 1055,
+    });
 
     // Override HTMLImageElement loading attribute to force eager loading
     Object.defineProperty(HTMLImageElement.prototype, 'loading', {
@@ -320,6 +387,18 @@ export async function createStealthContext(browser: any) {
       },
       configurable: true,
     });
+
+    // Mask WebGL vendor and renderer to look like a real GPU
+    const getParameter = WebGLRenderingContext.prototype.getParameter;
+    WebGLRenderingContext.prototype.getParameter = function(parameter) {
+      if (parameter === 37445) {
+        return 'Intel Inc.';
+      }
+      if (parameter === 37446) {
+        return 'Intel Iris OpenGL Engine';
+      }
+      return getParameter.call(this, parameter);
+    };
   });
 
   return context;
@@ -337,6 +416,76 @@ export async function preparePageForScreenshot(page: Page): Promise<void> {
 
   // Wait for images to load
   await waitForImages(page, 15000);
+}
+
+/**
+ * Detects if page is showing a Cloudflare or other bot protection challenge
+ */
+async function detectBotProtection(page: Page): Promise<{ detected: boolean; type?: string }> {
+  const indicators = await page.evaluate(() => {
+    const bodyText = document.body.innerText.toLowerCase();
+    const title = document.title.toLowerCase();
+
+    // Check for Cloudflare
+    const hasCloudflare = bodyText.includes('cloudflare') ||
+                          bodyText.includes('checking your browser') ||
+                          bodyText.includes('security verification') ||
+                          bodyText.includes('just a moment') ||
+                          title.includes('just a moment');
+
+    // Check for other protections
+    const hasDatadome = bodyText.includes('datadome');
+    const hasPerimeterX = bodyText.includes('perimeterx') || bodyText.includes('px-captcha');
+    const hasRecaptcha = document.querySelector('.g-recaptcha') !== null;
+
+    return {
+      cloudflare: hasCloudflare,
+      datadome: hasDatadome,
+      perimeterx: hasPerimeterX,
+      recaptcha: hasRecaptcha,
+    };
+  });
+
+  if (indicators.cloudflare) {
+    return { detected: true, type: 'Cloudflare' };
+  } else if (indicators.datadome) {
+    return { detected: true, type: 'DataDome' };
+  } else if (indicators.perimeterx) {
+    return { detected: true, type: 'PerimeterX' };
+  } else if (indicators.recaptcha) {
+    return { detected: true, type: 'reCAPTCHA' };
+  }
+
+  return { detected: false };
+}
+
+/**
+ * Waits for Cloudflare challenge to complete
+ */
+async function waitForCloudflareChallenge(page: Page, timeoutMs: number = 30000): Promise<boolean> {
+  console.log('Waiting for Cloudflare challenge to complete...');
+
+  const startTime = Date.now();
+
+  while (Date.now() - startTime < timeoutMs) {
+    const protection = await detectBotProtection(page);
+
+    if (!protection.detected) {
+      console.log('✓ Challenge completed successfully');
+      return true;
+    }
+
+    // Wait before checking again
+    await page.waitForTimeout(1000);
+
+    // Log progress every 5 seconds
+    if ((Date.now() - startTime) % 5000 < 1000) {
+      console.log(`Still waiting for ${protection.type} challenge... (${Math.floor((Date.now() - startTime) / 1000)}s)`);
+    }
+  }
+
+  console.log('⚠ Challenge timeout - continuing anyway');
+  return false;
 }
 
 /**
@@ -366,29 +515,45 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
       'Referer': new URL(url).origin,
     });
 
+    // Random delay before navigation to appear more human-like
+    const preNavigationDelay = 1000 + Math.random() * 2000;
+    console.log(`Waiting ${(preNavigationDelay / 1000).toFixed(1)}s before navigation...`);
+    await page.waitForTimeout(preNavigationDelay);
+
     // Navigate to URL with fallback strategies
     console.log('Loading page...');
     try {
       // First try with networkidle (works for most sites)
       await page.goto(url, {
-        waitUntil: 'networkidle',
-        timeout: 15000,
-      });
-    } catch (error) {
-      // Fallback to domcontentloaded if networkidle times out
-      console.log('Networkidle timeout, trying with domcontentloaded...');
-      await page.goto(url, {
         waitUntil: 'domcontentloaded',
         timeout: 30000,
       });
+    } catch (error) {
+      console.log('Navigation error, retrying...');
+      await page.goto(url, {
+        waitUntil: 'commit',
+        timeout: 30000,
+      });
+    }
 
-      // Wait for additional resources to load
-      await page.waitForTimeout(5000);
+    // Wait a moment for page to start rendering
+    await page.waitForTimeout(2000);
+
+    // Check for bot protection
+    const protection = await detectBotProtection(page);
+    if (protection.detected) {
+      console.log(`⚠ ${protection.type} protection detected`);
+      await waitForCloudflareChallenge(page, 30000);
     }
 
     // Wait for the page to be fully interactive
-    await page.waitForLoadState('load', { timeout: 10000 }).catch(() => {
+    await page.waitForLoadState('load', { timeout: 15000 }).catch(() => {
       console.log('Load state timeout, continuing anyway...');
+    });
+
+    // Additional wait for any remaining network activity
+    await page.waitForLoadState('networkidle', { timeout: 10000 }).catch(() => {
+      console.log('Network idle timeout, continuing...');
     });
 
     // Simulate human-like behavior with random scroll
@@ -408,6 +573,17 @@ export async function scrapeUrl(url: string): Promise<ScrapeResult> {
       window.scrollTo(0, 0);
     });
     await page.waitForTimeout(1000);
+
+    // Final check for bot protection
+    const finalProtection = await detectBotProtection(page);
+    if (finalProtection.detected) {
+      console.warn(`\n⚠ WARNING: ${finalProtection.type} protection still detected!`);
+      console.warn('The page may not have loaded correctly. Check the screenshot and HTML output.');
+      console.warn('You may need to:');
+      console.warn('  1. Use a different scraping approach (e.g., residential proxies)');
+      console.warn('  2. Contact the site owner for API access');
+      console.warn('  3. Try again later\n');
+    }
 
     // Generate filename
     const filename = generateFilename(url);
