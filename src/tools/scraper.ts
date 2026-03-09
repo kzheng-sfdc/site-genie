@@ -250,6 +250,7 @@ export async function createStealthBrowser() {
  */
 export async function createStealthContext(browser: any) {
   const context = await browser.newContext({
+    ignoreHTTPSErrors: true,
     viewport: { width: 1920, height: 1080 },
     userAgent: getRealisticUserAgent(),
     locale: 'en-US',
