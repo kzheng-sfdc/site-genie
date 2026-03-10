@@ -89,6 +89,44 @@ pnpm exec playwright install chromium
 
 ## Usage
 
+### Quick Start - Complete Workflow
+
+Run the entire workflow with a single command:
+
+```bash
+pnpm start <url> <project-path> <target-file> <page-name>
+```
+
+Example:
+```bash
+pnpm start https://www.spacenk.com ./storefront-next src/app/page.tsx HomePage
+```
+
+This single command will automatically:
+1. **Scrape** the website (HTML + screenshots)
+2. **Deconstruct** with AI (analyze structure, extract components)
+3. **Crop** component screenshots from live site
+4. **Generate** React components (TypeScript + Tailwind)
+5. **Generate** page layout (compose all components)
+
+The complete workflow typically takes 2-5 minutes depending on the website complexity.
+
+**When to use `pnpm start`:**
+- You want to go from URL to React code in one command
+- You're starting fresh with a new website
+- You want to automate the entire pipeline
+
+**When to use individual commands:**
+- You need to re-run specific steps (e.g., regenerate components)
+- You want to inspect output between steps
+- You're iterating on the analysis or generation prompts
+
+---
+
+### Individual Tools
+
+For more control, you can run each step separately:
+
 ### 1. Scrape a Website
 
 ```bash
