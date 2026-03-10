@@ -99,7 +99,7 @@ pnpm start <url> <project-path> <target-file> <page-name>
 
 Example:
 ```bash
-pnpm start https://www.spacenk.com ./storefront-next src/app/page.tsx HomePage
+pnpm start https://www.spacenk.com ./storefront-next _empty.SiteHome.tsx SiteHome
 ```
 
 This single command will automatically:
@@ -214,7 +214,7 @@ pnpm generate page <domain-folder> <project-path> <target-file> <page-name>
 
 Example:
 ```bash
-pnpm generate page www-spacenk-com ./storefront-next src/app/page.tsx HomePage
+pnpm generate page www-spacenk-com ./storefront-next _empty.MyHome.tsx.tsx MyHomePage
 ```
 
 This will:
